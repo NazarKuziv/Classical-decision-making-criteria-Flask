@@ -1,0 +1,32 @@
+
+
+.container{
+
+    min-width: 400px;
+    border: 1px solid black;
+    margin-top: 20px;
+    padding: 50px;
+    border-radius: 10%;
+    min-height: 700px;
+    font-size: larger;
+    
+
+}
+
+button{
+    
+    width: 100%;
+    height: 100%;
+}
+.row{
+    padding-top: 7px;
+    padding-bottom: 7px;
+    text-align: center;
+}
+.matrix-container{
+    margin-top: 20px;
+}
+.result-container{
+    margin-top: 20px;
+}
+

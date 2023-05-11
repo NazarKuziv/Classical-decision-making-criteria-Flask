@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Критерії прийняття рішень </title>
+
+    <link rel="stylesheet" href="../static/style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous">
+</head>
+<body>
+
+    <div class="container mt-5">
+
+        <div class="row">
+            <div class="col">
+                <label for="name">Кількість альтернатив: </label>
+                <select onchange="generatMatrix()" class="form-control" name="row" id="row">
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                </select>
+            </div>
+            <div class="col">
+                <label for="name">Кількість стратегій: </label>
+                <select onchange="generatMatrix()" class="form-control" name="col" id="col">
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                </select>
+            </div>
+            <div class="col">
+                <label for="name">Коефіцієнт песемізму: </label>
+                <input type="number" class="form-control" id="pessimism">
+            </div>
+            <div class="col">
+                <button  onclick="getBestAlteranive()" class="btn btn-primary">Визначити найкращу альтернативу</button>
+            </div>
+        </div>
+        <div class="matrix-container" id = "matrix-container">
+            
+
+        </div>
+        <div class="result-container">
+            <div class="row">
+                <div class="col">
+                  <label for="">За критерієм Вальда найкращою є Альтернатива № <span id="wald"></span></label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <label for="">За критерієм Севіджа найкращою є Альтернатива № <span id="savage"></span></label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <label for="">За критерієм Лапласа найкращою є Альтернатива № <span id="laplace"></span></label>
+                </div>
+            </div>
+
+        </div>
+ 
+    </div>
+
+
+    <script >
+        window.onload = (event) => {
+            generatMatrix();
+        };
+        function generatCol(col,i){
+
+            cols = '';
+            for(j = 0; j <= col; j++){
+                
+                if(i==0 && j==0){
+                    cols +=`<div class="col">
+                                <label for="name"></label>
+                            </div>`;
+                        }else if(i==0){
+                            cols +=`<div class="col">
+                                <label for="name">C${j}</label>
+                            </div>`;
+                        }
+                        else if(j==0){
+                            cols +=`<div class="col">
+                                <label for="name">A${i}</label>
+                            </div>`;
+                        }else{
+                            cols +=`<div class="col">
+                                <input type="number" class="form-control" id="${i}-${j}" step="any">
+                            </div>`;
+                        }                            
+            }
+            return cols;
+
+        }
+        function generatMatrix(){
+            const row = document.getElementById('row').value;
+            const col = document.getElementById('col').value;
+            
+            if(row && col){
+                matrix = document.getElementById('matrix-container');
+                matrix.innerHTML = '';
+              
+                for(i = 0; i <= row; i++){
+                    matrix.innerHTML += `<div class="row">
+                        ${generatCol(col,i)}
+                        </div>`;
+
+                }
+            }
+        }
+
+        async function getBestAlteranive(){
+            const row = document.getElementById('row').value;
+            const col = document.getElementById('col').value;
+            let pessimism = document.getElementById('pessimism').value;
+            if(!pessimism){
+                pessimism = 1;
+            }
+            let error = false;
+            let text ='{';
+            for(i = 1; i <= row; i++){
+                for(j = 1; j <= col; j++){
+                    let value = document.getElementById(i+'-'+j).value;
+                    if(value){
+                        text += `"${i}-${j}":"${value}",`
+                    }else{
+                        error = true;
+                        break;
+                    }
+                    
+                }
+            }
+            text = text.slice(0, -1);
+            text +='}';
+
+            if(error) {
+                alert("Заповніть всі поля матриці!");
+
+            }else{
+                let json = JSON.parse(text);
+
+                json = JSON.stringify(json);
+
+                response = await fetch(`/get-best-alteranive/${row}/${col}/${pessimism}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(json)
+                });  
+                jsonData = await response.json();
+                
+                console.log(jsonData);
+                wald = jsonData['wald'];
+                savage = jsonData['savage'];
+                laplace = jsonData['laplace'];
+                if(wald&&savage&&laplace){
+                    document.getElementById('wald').innerHTML = wald;
+                    document.getElementById('savage').innerHTML = savage;
+                    document.getElementById('laplace').innerHTML = laplace;
+                }
+                
+
+            }
+          
+            
+        }
+
+    </script>
+</body>
+</html>
